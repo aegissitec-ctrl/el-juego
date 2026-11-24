@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NEON RUN — EcoParkour</title>
+<style>
+:root{--glass:#101b29d9;--line:#ffffff25;--cyan:#71f5e7;--gold:#ffd66b}
+*{box-sizing:border-box}body{margin:0;background:#07111d;color:#f4f7fb;font-family:Inter,system-ui,Segoe UI,Arial,sans-serif}
+.wrap{max-width:1180px;margin:auto;padding:16px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.logo{font-size:clamp(22px,4vw,34px);font-weight:1000;letter-spacing:2px}.logo b{color:var(--cyan)}.tag{color:#b9c9d9;font-size:13px;letter-spacing:2px}
+.card{background:linear-gradient(145deg,#142438f2,#0b1624f2);border:1px solid var(--line);border-radius:22px;padding:clamp(14px,3vw,25px);box-shadow:0 20px 60px #0008}
+.screen{display:none}.screen.active{display:block}
+h1{font-size:clamp(30px,5vw,52px);line-height:.98;margin:0 0 12px;letter-spacing:-1px}h2{margin:22px 0 10px;font-size:18px}
+p{color:#bdcad8;line-height:1.55}.eyebrow{color:var(--cyan);font-size:12px;letter-spacing:3px;font-weight:900}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.pick,.world{color:#f5f7fb;text-align:left;background:#ffffff08;border:1px solid var(--line);border-radius:15px;padding:13px;cursor:pointer;min-height:104px;transition:.18s}
+.pick.selected,.world.selected{border-color:var(--cyan);background:#71f5e714;box-shadow:inset 0 0 0 1px #71f5e744}
+.pick strong,.world strong{display:block;margin:5px 0}.pick small,.world small{color:#b5c5d5;line-height:1.4}.emoji{font-size:29px}
+button{font:inherit}.btn{border:0;border-radius:12px;padding:12px 18px;min-height:44px;font-weight:900;cursor:pointer;background:linear-gradient(100deg,#5cebdc,#9bffd5);color:#09202a}
+.btn.alt{background:#ffffff12;color:#f5f7fb;border:1px solid var(--line)}.btn:disabled{opacity:.4}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}
+#game{width:100%;display:block;border-radius:16px;border:1px solid #ffffff30;background:#17283a;aspect-ratio:16/9;touch-action:none}
+.hud{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px}
+.stat{background:#ffffff12;border:1px solid var(--line);padding:8px 12px;border-radius:99px;font-size:13px;font-weight:800}
+.bar{width:100px;height:7px;background:#ffffff22;border-radius:9px;overflow:hidden;display:inline-block;vertical-align:middle}.bar i{display:block;height:100%;background:var(--cyan);width:0}
+.gamefoot{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+#msg{color:#d9e8ef;font-weight:700;min-height:22px}
+.touch{display:flex;justify-content:space-between;gap:10px;margin-top:10px}.touchgroup{display:flex;gap:8px}
+.touch button{width:54px;height:48px;border:1px solid #ffffff30;border-radius:13px;background:#ffffff14;color:white;font-size:20px;font-weight:900;touch-action:none}
+.touch .jump{background:#5cebdc;color:#09202a}
+.hint{font-size:12px;color:#91a7ba;margin:8px 0 0}
+.end{text-align:center;padding:35px 10px}.end .medal{font-size:72px}
+@media(max-width:600px){.wrap{padding:9px}.stat{font-size:11px;padding:7px 9px}.touch button{width:48px}}
+</style>
+</head>
+<body><div class="wrap">
+<header class="top"><div><div class="logo">NEON <b>RUN</b></div><div class="tag">AN ECO-PARKOUR EXPERIENCE</div></div><div class="tag">SUNSET CITY • SEASON 01</div></header>
+
+<section id="menu" class="screen active card">
+ <div class="eyebrow">BIENVENIDO A LA CIUDAD</div><h1>La ciudad es tu<br><span style="color:var(--cyan)">parque de juegos.</span></h1>
+ <p>Corre por azoteas, encadena saltos, deslízate bajo carteles, recoge energía y supera retos contrarreloj. Una aventura urbana con estética cinematográfica de atardecer, luces de neón y ciudad viva.</p>
+ <h2>ELIGE TU RUNNER</h2><div class="grid" id="chars">
+  <button class="pick selected" data-char="leo"><span class="emoji">🧢</span><strong>LEO · El acróbata</strong><small>Doble salto en el aire. Equilibrado y perfecto para rutas altas.</small></button>
+  <button class="pick" data-char="maya"><span class="emoji">🪽</span><strong>MAYA · La voladora</strong><small>Vuela por la ciudad y se mueve un 50% más rápido.</small></button>
+  <button class="pick" data-char="byte"><span class="emoji">🤖</span><strong>BYTE · El técnico</strong><small>Salto gravitatorio: flota un instante y aterriza con precisión.</small></button>
+ </div>
+ <h2>DIFICULTAD</h2><div class="grid" id="diffs">
+  <button class="pick selected" data-diff="chill"><strong>🌴 PASEO</strong><small>Más tiempo, saltos sencillos y 4 corazones.</small></button>
+  <button class="pick" data-diff="street"><strong>🌆 CALLEJERO</strong><small>Ritmo normal, obstáculos y 3 corazones.</small></button>
+  <button class="pick" data-diff="pro"><strong>🔥 LEYENDA</strong><small>Velocidad alta, saltos exigentes y 2 corazones.</small></button>
+ </div>
+ <h2>SELECCIONA TU DISTRITO</h2><div class="grid" id="worlds">
+  <button class="world selected" data-world="0"><span class="emoji">🌇</span><strong>01 · Downtown</strong><small>Azoteas y carteles luminosos.</small></button>
+  <button class="world" data-world="1"><span class="emoji">🌴</span><strong>02 · Ocean Drive</strong><small>Palmeras, hoteles y costa.</small></button>
+  <button class="world" data-world="2"><span class="emoji">🏗️</span><strong>03 · Zona industrial</strong><small>Grúas, tuberías y saltos largos.</small></button>
+  <button class="world" data-world="3"><span class="emoji">🌃</span><strong>04 · Neon Heights</strong><small>El circuito definitivo.</small></button>
+ </div>
+ <div class="row"><button class="btn" id="play">ENTRAR EN LA CIUDAD ↗</button><span class="hint">Objetivo: alcanza el portal de meta antes de quedarte sin corazones.</span></div>
+</section>
+
+<section id="playScreen" class="screen card">
+ <div class="hud"><span class="stat" id="district">🌇 DOWNTOWN</span><span class="stat" id="score">✦ 0000</span><span class="stat" id="hearts">♥ ♥ ♥</span><span class="stat">DISTANCIA <span class="bar"><i id="progress"></i></span></span><button class="btn alt" id="pause">Ⅱ PAUSA</button></div>
+ <canvas id="stage" width="1100" height="620" aria-label="Juego de parkour urbano"></canvas>
+ <div class="gamefoot"><div id="msg" aria-live="polite">¡Corre hacia la meta y recoge energía!</div><div class="row" style="margin:0"><button class="btn alt" id="retry">↻ REINICIAR</button><button class="btn alt" id="back">MENÚ</button></div></div>
+ <div class="touch"><div class="touchgroup"><button data-control="left">◀</button><button data-control="right">▶</button></div><div class="touchgroup"><button data-control="skill">⚡</button><button data-control="down">⬇</button><button class="jump" data-control="jump">⬆</button></div></div>
+ <p class="hint">Teclado: A/D o ←/→ moverse · Espacio/↑ subir o saltar · ↓ bajar · Shift habilidad · P pausa. Maya vuela automáticamente.</p>
+</section>
+<section id="finish" class="screen card end"><div class="medal" id="medal">🏆</div><div class="eyebrow">MISIÓN FINALIZADA</div><h1 id="endTitle">¡LO HAS PETADO!</h1><p id="endText"></p><div class="row" style="justify-content:center"><button class="btn" id="next">SIGUIENTE DISTRITO ➜</button><button class="btn alt" id="again">OTRA PARTIDA</button><button class="btn alt" id="menuBtn">CAMBIAR RUNNER</button></div></section>
+</div>
+<script>
+(()=>{
+const $=s=>document.querySelector(s),all=s=>[...document.querySelectorAll(s)];
+const c=$("#stage"),g=c.getContext("2d"),W=c.width,H=c.height;
+const names=["DOWNTOWN","OCEAN DRIVE","ZONA INDUSTRIAL","NEON HEIGHTS"];
+const palettes=[
+ {sky:["#f4a77f","#f3c68c","#6d7a9a"],far:"#59647d",near:"#303b53",roof:"#273446",neon:"#ff75bd"},
+ {sky:["#eea98a","#ffd59a","#6a9da5"],far:"#668b91",near:"#35616b",roof:"#294b55",neon:"#6bf4df"},
+ {sky:["#dc957e","#e9b78d","#626d80"],far:"#6c6872",near:"#3c4654",roof:"#29313d",neon:"#ffc56c"},
+ {sky:["#b67ea1","#f3a77e","#283d66"],far:"#4d557e",near:"#252e50",roof:"#1b263f",neon:"#71f5e7"}
+];
+const runner={leo:{emoji:"🧢",name:"Leo",color:"#ff875f"},maya:{emoji:"🛹",name:"Maya",color:"#60e3d4"},byte:{emoji:"🤖",name:"Byte",color:"#a99aff"}};
+const difficulty={chill:{speed:1,gravity:.62,jump:13.2,lives:4,hazard:.7},street:{speed:1.13,gravity:.68,jump:13,lives:3,hazard:1},pro:{speed:1.26,gravity:.73,jump:12.7,lives:2,hazard:1.35}};
+let char="leo",diff="chill",world=0,player,platforms=[],coins=[],traps=[],camera=0,score=0,lives=3,active=false,paused=false,raf=0,last=0,inv=0,keys={left:false,right:false,jump:false,down:false,skill:false},jumpWas=false,skillOK=true,combo=0,comboTimer=0,finishX=0;
+function choose(sel,key,cb){all(sel).forEach(b=>b.onclick=()=>{all(sel).forEach(x=>x.classList.remove("selected"));b.classList.add("selected");cb(b.dataset[key]);});}
+choose("#chars .pick","char",v=>char=v);choose("#diffs .pick","diff",v=>diff=v);choose("#worlds .world","world",v=>world=+v);
+function screen(id){["menu","playScreen","finish"].forEach(x=>$("#"+x).classList.toggle("active",x===id));}
+function setup(){
+ const d=difficulty[diff],length=5100+world*280;finishX=length-130;
+ platforms=[{x:0,y:530,w:690,h:100},{x:760,y:468,w:180,h:22},{x:1010,y:415,w:180,h:22},{x:1260,y:480,w:210,h:22},{x:1540,y:420,w:190,h:22},{x:1810,y:355,w:190,h:22},{x:2080,y:465,w:220,h:22},{x:2380,y:405,w:190,h:22},{x:2660,y:335,w:190,h:22},{x:2950,y:460,w:220,h:22},{x:3250,y:395,w:190,h:22},{x:3540,y:330,w:190,h:22},{x:3820,y:450,w:230,h:22},{x:4140,y:385,w:190,h:22},{x:4440,y:330,w:190,h:22},{x:length-260,y:455,w:300,h:100}];
+ // bonus rooftops, rails and lifts
+ platforms.push({x:1120,y:300,w:115,h:16,moving:true,base:1120,range:55,phase:.2},{x:2220,y:300,w:120,h:16,moving:true,base:2220,range:75,phase:1.8},{x:3420,y:260,w:125,h:16,moving:true,base:3420,range:65,phase:2.4});
+ if(world===3)platforms.push({x:1680,y:260,w:130,h:16},{x:2850,y:250,w:120,h:16},{x:4050,y:250,w:120,h:16});
+ coins=[];for(let x=340;x<length-210;x+=150){let p=platforms.reduce((a,b)=>Math.abs(b.x+b.w/2-x)<Math.abs(a.x+a.w/2-x)?b:a,platforms[0]);coins.push({x,y:p.y-42,r:12,got:false,phase:Math.random()*8});}
+ traps=[];for(let x=890;x<length-360;x+=world===3?330:430)traps.push({x,y:432,w:45,h:38,phase:Math.random()*6,kind:Math.floor(Math.random()*3)});
+ player={x:70,y:420,w:35,h:58,vx:0,vy:0,ground:false,jumps:0,face:1,dash:0,float:0};camera=0;score=0;lives=d.lives;inv=0;combo=0;comboTimer=0;paused=false;skillOK=true;jumpWas=false;
+ $("#district").textContent=["🌇","🌴","🏗️","🌃"][world]+" "+names[world];$("#msg").textContent="¡Haz parkour y recoge los cristales!";$("#pause").textContent="Ⅱ PAUSA";hud();
+}
+function hud(){$("#score").textContent="✦ "+String(score).padStart(4,"0");$("#hearts").textContent="♥ ".repeat(lives)||"SIN VIDAS";$("#progress").style.width=Math.min(100,player.x/finishX*100)+"%";}
+function start(){setup();active=true;screen("playScreen");cancelAnimationFrame(raf);last=0;raf=requestAnimationFrame(loop);}
+function overlap(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
+function useSkill(){if(!active||paused||!skillOK)return;
+ if(char==="leo"){if(player.jumps<2){player.vy=-13.4;player.jumps=2;player.ground=false;skillOK=false;setTimeout(()=>skillOK=true,420);$("#msg").textContent="¡DOBLE SALTO! ✨";}}
+ if(char==="maya"){player.dash=197;player.vx=player.face*16;player.vy=-1;skillOK=false;setTimeout(()=>skillOK=true,200);$("#msg").textContent="¡TURBO! 💨";}
+ if(char==="byte"){player.vy=Math.min(player.vy,1);player.float=45;skillOK=false;setTimeout(()=>skillOK=true,1400);$("#msg").textContent="GRAVEDAD CERO 🤖";}
+}
+function hurt(){
+ if(inv>0)return;
+ lives--;inv=100;
+ // Reaparece sobre la plataforma segura más cercana, en vez de quedarse flotando.
+ const target=Math.max(0,player.x-120);
+ let safe=platforms[0],best=Infinity;
+ for(const q of platforms){
+  const landingX=Math.max(q.x+12,Math.min(target,q.x+q.w-player.w-12));
+  const distance=Math.abs(landingX-target)+Math.abs(q.y-430)*.18;
+  if(distance<best){best=distance;safe=q;}
+ }
+ player.x=Math.max(0,Math.min(finishX-50,Math.max(safe.x+12,Math.min(target,safe.x+safe.w-player.w-12))));
+ player.y=safe.y-player.h-2;
+ player.vx=0;player.vy=0;player.ground=true;player.jumps=0;
+ combo=0;hud();
+ if(lives<=0)finish(false);
+ else $("#msg").textContent="¡Reapareces en una plataforma! Sigue adelante.";
+}
+function update(dt){
+ const p=player,d=difficulty[diff],step=Math.min(dt/16.67,2);
+ platforms.forEach(q=>{if(q.moving)q.x=q.base+Math.sin(performance.now()/700+q.phase)*q.range;});
+ let dir=(keys.right?1:0)-(keys.left?1:0);
+ if(dir){p.vx+=dir*(char==="maya"?1.23:.82)*step;p.face=dir;}else p.vx*=Math.pow(char==="maya"?.94:.82,step);
+ const maxSpeed=5.5*d.speed*(char==="maya"?1.5:1);
+ p.vx=Math.max(-maxSpeed,Math.min(maxSpeed,p.vx));
+ if(char==="maya"){
+  // Vuelo permanente: arriba asciende, abajo desciende y sin tecla mantiene altura.
+  const vertical=(keys.down?1:0)-(keys.jump?1:0);
+  p.vy+=vertical*.72*step;
+  if(!vertical)p.vy*=Math.pow(.82,step);
+  p.vy=Math.max(-5.2,Math.min(5.2,p.vy));
+  p.ground=false;
+ }else{
+  // Salto sin cooldown: si mantienes pulsado, vuelve a saltar al aterrizar.
+  if(keys.jump&&p.ground){p.vy=-d.jump;p.ground=false;p.jumps=1;}
+  else if(keys.jump&&!jumpWas&&char==="leo"&&p.jumps<2){p.vy=-12.8;p.jumps=2;}
+ }
+ jumpWas=keys.jump;
+ if(keys.skill){keys.skill=false;useSkill();}
+ if(p.dash>0){p.dash-=step;p.vx=p.face*16;}
+ if(char!=="maya"){p.vy+=d.gravity*step;if(p.float>0){p.float-=step;if(p.vy>2)p.vy*=.88;}p.vy=Math.min(14,p.vy);}
+ let old=p.y;p.x+=p.vx*step;p.y+=p.vy*step;p.ground=false;
+ if(char!=="maya"){
+  for(const q of platforms){if(p.vy>=0&&old+p.h<=q.y+5&&p.y+p.h>=q.y&&p.x+p.w>q.x&&p.x<q.x+q.w){p.y=q.y-p.h;p.vy=0;p.ground=true;p.jumps=0;}}
+ }
+ p.x=Math.max(0,Math.min(finishX+80,p.x));
+ if(p.y>H+120){hurt();return;}
+ if(inv>0)inv-=step;
+ traps.forEach(t=>{
+  let y=t.y+Math.sin(performance.now()/230+t.phase)*6;
+  // Hitbox de los obstáculos rojos un poco más pequeña que su dibujo.
+  const hitbox={x:t.x+6,y:y+5,w:t.w-12,h:t.h-8};
+  if(overlap(p,hitbox)&&inv<=0)hurt();
+ });
+ for(const coin of coins){if(!coin.got&&Math.hypot(p.x+p.w/2-coin.x,p.y+p.h/2-(coin.y+Math.sin(performance.now()/190+coin.phase)*5))<34){coin.got=true;score+=25;combo++;comboTimer=110;if(combo>=3){score+=combo*5;$("#msg").textContent="¡COMBO x"+combo+"! +"+(25+combo*5)+" ✦";}else $("#msg").textContent="¡Cristal recogido! +25 ✦";}}
+ if(comboTimer>0)comboTimer-=step;else combo=0;
+ if(p.x>=finishX)finish(true);
+ camera=Math.max(0,Math.min(finishX-W+100,p.x-W*.32));hud();
+}
+function polygon(x,y,w,h,color){g.fillStyle=color;g.beginPath();g.moveTo(x,y+h);g.lineTo(x+w*.12,y+h*.25);g.lineTo(x+w*.45,y);g.lineTo(x+w*.82,y+h*.2);g.lineTo(x+w,y+h);g.closePath();g.fill();}
+function draw(){
+ let pal=palettes[world],sky=g.createLinearGradient(0,0,0,H);sky.addColorStop(0,pal.sky[0]);sky.addColorStop(.53,pal.sky[1]);sky.addColorStop(1,pal.sky[2]);g.fillStyle=sky;g.fillRect(0,0,W,H);
+ // Sun and cinematic haze
+ let sunX=790-camera*.035;let glow=g.createRadialGradient(sunX,165,10,sunX,165,170);glow.addColorStop(0,"#fff6d7aa");glow.addColorStop(1,"#fff6d700");g.fillStyle=glow;g.fillRect(sunX-180,0,360,350);g.fillStyle="#fff0c8";g.beginPath();g.arc(sunX,165,57,0,Math.PI*2);g.fill();
+ // distant skyline parallax
+ g.save();g.translate(-camera*.18,0);
+ for(let i=0;i<24;i++){let x=i*115-40,h=110+(i*47%170),y=450-h;g.fillStyle=pal.far;g.fillRect(x,y,88,h);g.fillStyle="#ffffff12";for(let j=0;j<4;j++)for(let k=0;k<5;k++)g.fillRect(x+10+j*17,y+15+k*24,6,10);}
+ g.restore();
+ // closer city
+ g.save();g.translate(-camera*.48,0);
+ for(let i=0;i<19;i++){let x=i*175-30,h=150+(i*61%190),y=475-h;g.fillStyle=pal.near;g.fillRect(x,y,142,h);g.fillStyle="#ffffff18";for(let a=0;a<5;a++)for(let b=0;b<Math.floor(h/28);b++){g.fillStyle=(a+b+i)%3===0?pal.neon:"#f7c98a66";g.fillRect(x+13+a*25,y+16+b*25,9,12);}g.fillStyle="#18253a";g.fillRect(x-5,y,152,9);if(i%3===0){g.strokeStyle=pal.neon;g.lineWidth=3;g.strokeRect(x+20,y+35,95,30);g.fillStyle="#fff";g.font="bold 13px system-ui";g.fillText(["OPEN","ECO","NIGHT","RUN"][i%4],x+37,y+55);}}
+ g.restore();
+ // Street depth and clouds
+ g.fillStyle="#18273b";g.fillRect(0,475,W,145);g.fillStyle="#ffffff18";for(let i=0;i<15;i++){let x=(i*113-camera*.7)%W;g.fillRect(x,490,55,2);}
+ // level geometry
+ g.save();g.translate(-camera,0);
+ platforms.forEach(q=>{g.fillStyle="#101b2b";g.fillRect(q.x,q.y,q.w,q.h);let gr=g.createLinearGradient(0,q.y,0,q.y+q.h);gr.addColorStop(0,"#596a7b");gr.addColorStop(.16,pal.roof);gr.addColorStop(1,"#111c2c");g.fillStyle=gr;g.fillRect(q.x,q.y,q.w,q.h);g.fillStyle=pal.neon;g.fillRect(q.x,q.y,q.w,4);g.fillStyle="#ffffff18";g.fillRect(q.x+8,q.y+12,q.w-16,2);for(let z=0;z<Math.floor(q.w/55);z++){g.fillStyle="#ffffff12";g.fillRect(q.x+15+z*55,q.y+q.h-18,24,5);}});
+ // hazards styled as vents / traffic cones
+ traps.forEach(t=>{let y=t.y+Math.sin(performance.now()/230+t.phase)*6;g.fillStyle="#f05d61";g.beginPath();g.moveTo(t.x,y+t.h);g.lineTo(t.x+8,y+8);g.lineTo(t.x+t.w-8,y+8);g.lineTo(t.x+t.w,y+t.h);g.closePath();g.fill();g.fillStyle="#ffe3a2";g.fillRect(t.x+12,y+22,20,5);});
+ // collectible energy shards
+ coins.forEach(o=>{if(o.got)return;let y=o.y+Math.sin(performance.now()/190+o.phase)*5;g.save();g.translate(o.x,y);g.rotate(performance.now()/650);g.shadowColor=pal.neon;g.shadowBlur=18;g.fillStyle="#fff2a6";g.beginPath();g.moveTo(0,-14);g.lineTo(11,0);g.lineTo(0,14);g.lineTo(-11,0);g.closePath();g.fill();g.restore();});
+ // Finish portal
+ g.shadowColor=pal.neon;g.shadowBlur=25;g.strokeStyle=pal.neon;g.lineWidth=8;g.strokeRect(finishX-90,340,55,115);g.shadowBlur=0;g.fillStyle="#fff";g.font="bold 17px system-ui";g.fillText("FINISH",finishX-101,325);
+ // Runner, animated legs and trail
+ let p=player;g.globalAlpha=inv>0&&Math.floor(inv/8)%2===0?.35:1;
+ if(p.dash>0){g.strokeStyle=pal.neon;g.lineWidth=9;g.globalAlpha=.6;g.beginPath();g.moveTo(p.x-25,p.y+30);g.lineTo(p.x-95,p.y+35);g.stroke();g.globalAlpha=1;}
+ if(char==="maya"){
+  g.save();g.shadowColor="#60e3d4";g.shadowBlur=24;g.fillStyle="#60e3d455";g.beginPath();g.ellipse(p.x+p.w/2,p.y+p.h+12,25,7,0,0,Math.PI*2);g.fill();
+  const flap=Math.sin(performance.now()/90)*5;g.fillStyle="#b8fff4";g.beginPath();g.moveTo(p.x+8,p.y+25);g.lineTo(p.x-13,p.y+9+flap);g.lineTo(p.x+3,p.y+37);g.closePath();g.fill();g.beginPath();g.moveTo(p.x+27,p.y+25);g.lineTo(p.x+48,p.y+9-flap);g.lineTo(p.x+32,p.y+37);g.closePath();g.fill();g.restore();
+ }else{
+  g.fillStyle="#0007";g.beginPath();g.ellipse(p.x+p.w/2,p.y+p.h+3,24,7,0,0,Math.PI*2);g.fill();
+  let run=Math.sin(performance.now()/70)*5;g.strokeStyle="#111b2a";g.lineWidth=9;g.lineCap="round";g.beginPath();g.moveTo(p.x+12,p.y+43);g.lineTo(p.x+10+run,p.y+56);g.moveTo(p.x+25,p.y+43);g.lineTo(p.x+26-run,p.y+56);g.stroke();
+ }
+ g.fillStyle=runner[char].color;g.fillRect(p.x+5,p.y+16,26,30);
+ g.fillStyle="#f3c8a5";g.beginPath();g.arc(p.x+18,p.y+12,13,0,Math.PI*2);g.fill();
+ g.fillStyle="#172234";g.fillRect(p.x+8,p.y+7,20,5);
+ g.font="20px system-ui";g.textAlign="center";g.fillText(runner[char].emoji,p.x+18,p.y+32);
+ g.globalAlpha=1;g.restore();
+ // Minimal mission overlay
+ g.fillStyle="#07111dbb";g.fillRect(18,18,210,46);g.fillStyle="#fff";g.font="bold 14px system-ui";g.fillText("OBJETIVO: LLEGA AL PORTAL",30,46);
+}
+function loop(t){if(!active)return;raf=requestAnimationFrame(loop);if(!last)last=t;let dt=t-last;last=t;if(!paused)update(dt);draw();if(paused){g.fillStyle="#07111d99";g.fillRect(0,0,W,H);g.fillStyle="#fff";g.font="900 54px system-ui";g.textAlign="center";g.fillText("PAUSA",W/2,H/2);}}
+function finish(won){active=false;cancelAnimationFrame(raf);$("#medal").textContent=won?"🏆":"💥";$("#endTitle").textContent=won?"¡DISTRITO CONQUISTADO!":"¡TE HAN PILLADO!";$("#endText").textContent=won?`Has completado ${names[world]} con ${score} puntos. Runner: ${runner[char].name}. ¡Eres una leyenda urbana!`:`Has conseguido ${score} puntos en ${names[world]}. ¡Vuelve a intentarlo y mejora tu ruta!`;$("#next").style.display=won&&world<3?"inline-block":"none";screen("finish");}
+function togglePause(){if(!active)return;paused=!paused;$("#pause").textContent=paused?"▶ SEGUIR":"Ⅱ PAUSA";}
+$("#play").onclick=start;$("#pause").onclick=togglePause;$("#retry").onclick=start;$("#again").onclick=start;$("#back").onclick=()=>{active=false;cancelAnimationFrame(raf);screen("menu");};$("#menuBtn").onclick=()=>{screen("menu");};$("#next").onclick=()=>{world=Math.min(3,world+1);all("#worlds .world").forEach(b=>b.classList.toggle("selected",+b.dataset.world===world));start();};
+window.addEventListener("keydown",e=>{if(!$("#playScreen").classList.contains("active"))return;let k=e.key.toLowerCase();if(["arrowleft","arrowright","arrowup"," "].includes(k))e.preventDefault();if(k==="a"||k==="arrowleft")keys.left=true;if(k==="d"||k==="arrowright")keys.right=true;if(k===" "||k==="arrowup"||k==="w")keys.jump=true;if(k==="arrowdown"||k==="s")keys.down=true;if(k==="shift"||k==="x")keys.skill=true;if(k==="p")togglePause();});
+window.addEventListener("keyup",e=>{let k=e.key.toLowerCase();if(k==="a"||k==="arrowleft")keys.left=false;if(k==="d"||k==="arrowright")keys.right=false;if(k===" "||k==="arrowup"||k==="w")keys.jump=false;if(k==="arrowdown"||k==="s")keys.down=false;});
+all(".touch button").forEach(b=>{let k=b.dataset.control;let down=e=>{e.preventDefault();if(k==="skill"){keys.skill=true;useSkill();}else keys[k]=true;};let up=e=>{e.preventDefault();if(k!=="skill")keys[k]=false;};b.addEventListener("pointerdown",down);b.addEventListener("pointerup",up);b.addEventListener("pointercancel",up);b.addEventListener("pointerleave",up);});
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&active&&!paused)togglePause();});
+})();
+</script></body></html>
